@@ -4,8 +4,10 @@ import "./Ownable.sol";
 
 contract Remittance is Ownable {
 
-    event LogRemittancePerformed(address indexed to, uint amount);
-    
+    event LogWithdraw(address from, uint amount);
+    event LogRedeem(address from, uint amount);
+    event LogKill(address from);
+
     struct Puzzle {
         string psw1;
         string psw2;
@@ -37,16 +39,18 @@ contract Remittance is Ownable {
     function withdraw(string _psw1, string _psw2) whileNotExpired public payable {
         require(msg.sender == exchange);
         require(keccak256(puzzle.psw1, puzzle.psw2) == keccak256(_psw1, _psw2));
-        LogRemittancePerformed(msg.sender, amountToremit);
+        LogWithdraw(msg.sender, amountToremit);
         msg.sender.transfer(amountToremit);
     }
 
     function redeem() onlyOwner whileExpired public payable {
         owner.transfer(amountToremit);
+        LogRedeem(owner, amountToremit);
     }
 
     function kill() onlyOwner whileExpired public returns (bool) {
         selfdestruct(owner);
+        LogKill(owner);
         return true;
     }
 }
