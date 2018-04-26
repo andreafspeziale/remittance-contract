@@ -56,5 +56,19 @@ contract('Remittance', (accounts)=> {
                 assert.include(e.message, 'revert', 'No revert if owner kill the contract while is not expired')
             }
         })
+        it('should kill the contract if timeframe has expired and the fuction is invoke by the owner', async () => {
+            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})      
+            const isKilled = await cont.kill()
+            const status = isKilled.receipt.status
+            assert.equal(status, '0x01', "Contract is not dead")
+        })
+        it('should not kill the contract even if timeframe has expired', async () => {
+            try {
+                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})
+                const isKilled = await cont.kill({from: thirdy})
+            } catch(e) {
+                assert.include(e.message, 'revert', 'No revert if owner kill the contract while is not expired')
+            }
+        })
     })
 })
