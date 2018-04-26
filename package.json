@@ -1,0 +1,17 @@
+{
+  "name": "remittance-contract",
+  "version": "1.0.0",
+  "description": "a remittance contract",
+  "main": "truffle.js",
+  "scripts": {
+    "develop": "./node_modules/.bin/truffle develop"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "truffle": "^4.0.5"
+  },
+  "dependencies": {
+    "lodash": "^4.17.5"
+  }
+}
