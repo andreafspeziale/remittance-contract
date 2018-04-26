@@ -48,17 +48,13 @@ contract('Remittance', (accounts)=> {
                 assert.include(e.message, 'revert', 'No revert if anyone kill the contract')
             }
         })
-        // it('should kill the contract on owner invokation', async () => {
-        //     try {
-        //         await contract.kill()
-        //         const owner = await contract.owner()
-        //         console.log(owner)
-        //         assert.equal(owner, '0x0', 'The contract is not killed')
-        //     } catch(e) {
-        //         //const ow = await contract.owner()
-        //         //console.log('error', ow)
-        //         console.log('error', contract.exchange())
-        //     }
-        // })
+        it('should not kill the contract if timeframe has not expired', async () => {
+            try {
+                const isKilled = await contract.kill()
+                assert.isUndefined(isKilled, 'Anyone can kill the contract')
+            } catch(e) {
+                assert.include(e.message, 'revert', 'No revert if owner kill the contract while is not expired')
+            }
+        })
     })
 })
