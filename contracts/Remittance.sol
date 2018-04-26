@@ -22,7 +22,7 @@ contract Remittance is Ownable {
     }
 
     modifier whileExpired() {
-        require(block.number<deadline);
+        require(block.number>deadline);
         _;
     }
 
