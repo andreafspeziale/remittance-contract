@@ -45,8 +45,6 @@ contract('Remittance', (accounts)=> {
                 const isKilled = await contract.kill({from: thirdy})
                 assert.isUndefined(isKilled, 'Anyone can kill the contract')
             } catch (e) {
-                console.log('error', await contract.exchange())
-
                 assert.include(e.message, 'revert', 'No revert if anyone kill the contract')
             }
         })
