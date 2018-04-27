@@ -10,6 +10,9 @@ contract('Remittance', (accounts)=> {
     const pwd2 = 'hello2'
     const pwd3 = 'hello3'
 
+    const puzzle = web3.sha3(pwd1, pwd2)
+    const wrongPuzzle = web3.sha3(pwd1, pwd3)
+
     const bal = web3.eth.getBalance(owner)
 
     const expectEvent = (res, eventName) => {
@@ -19,7 +22,7 @@ contract('Remittance', (accounts)=> {
     }
 
     beforeEach(async() => {
-        contract = await Remittance.new(pwd1, pwd2, exchange, 10, {value: web3.toWei(4, 'ether')})
+        contract = await Remittance.new(puzzle, exchange, 10, {value: web3.toWei(4, 'ether')})
     })
 
     describe("Ownership stuff:", () => {
@@ -71,7 +74,7 @@ contract('Remittance', (accounts)=> {
         })
 
         it('should kill the contract if timeframe has expired and the fuction is invoke by the owner', async () => {
-            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
+            const cont = await Remittance.new(puzzle, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
             const isKilled = await cont.kill({from: thirdy})
             const status = isKilled.receipt.status
             assert.equal(status, '0x01', "Contract is not dead")
@@ -79,7 +82,7 @@ contract('Remittance', (accounts)=> {
 
         it('should not kill the contract even if timeframe has expired', async () => {
             try {
-                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
+                const cont = await Remittance.new(puzzle, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
                 const isKilled = await cont.kill({from: owner})
             } catch(e) {
                 assert.include(e.message, 'revert', 'No revert if owner kill the contract while is not expired')
@@ -99,7 +102,7 @@ contract('Remittance', (accounts)=> {
 
         it('should not reedem if invoke by no owner', async () => {
             try {
-                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})
+                const cont = await Remittance.new(puzzle, exchange, 0, {value: web3.toWei(4, 'ether')})
                 const redeem = await cont.redeem({from: thirdy})
             } catch(e) {
                 assert.include(e.message, 'revert', 'Anyone can reedem')
@@ -107,7 +110,7 @@ contract('Remittance', (accounts)=> {
         })
 
         it('should reedem 4 ether', async () => {
-            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})
+            const cont = await Remittance.new(puzzle, exchange, 0, {value: web3.toWei(4, 'ether')})
             const initial = Math.trunc(web3.fromWei(web3.eth.getBalance(owner), 'ether'))
             const redeem = await cont.redeem()
             const final = Math.trunc(web3.fromWei(web3.eth.getBalance(owner), 'ether'))
@@ -115,7 +118,7 @@ contract('Remittance', (accounts)=> {
         })
 
         it("should log an LogRedeem event", async () => {
-            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
+            const cont = await Remittance.new(puzzle, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
             const redeem = await cont.redeem({from: thirdy})
             const ev = expectEvent(redeem, 'LogRedeem')
             expect(ev.args.from).to.equal(thirdy)
@@ -135,7 +138,7 @@ contract('Remittance', (accounts)=> {
 
         it('should not withdraw because timeframe is expired', async () => {
             try {
-                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(1, 'ether')})
+                const cont = await Remittance.new(puzzle, exchange, 0, {from: thirdy, value: web3.toWei(1, 'ether')})
                 const withdraw = await cont.withdraw(pwd1, pwd2, {from: exchange})
             } catch(e) {
                 assert.include(e.message, 'revert', 'Can withdraw whenever')
