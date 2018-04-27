@@ -10,6 +10,9 @@ contract('Remittance', (accounts)=> {
     const pwd2 = 'hello2'
     const pwd3 = 'hello3'
 
+    const bal = web3.eth.getBalance(owner)
+    console.log(`owner: ${web3.fromWei(bal, 'ether')}`)
+
     const expectEvent = (res, eventName) => {
         const ev = _.find(res.logs, {event: eventName})
         expect(ev).to.not.be.undefined
@@ -21,10 +24,12 @@ contract('Remittance', (accounts)=> {
     })
 
     describe("Ownership stuff:", () => {
+
         it("should be own by owner", async () => {
             const owner = await contract.owner()
             assert.strictEqual(owner, owner, "Contract owner is not the same")
         })
+
         it("should set a new owner", async () => {
             const transferOwnership = await contract.transferOwnership(thirdy)
             const newOwner = await contract.owner()
@@ -38,8 +43,16 @@ contract('Remittance', (accounts)=> {
             expect(ev.args.previousOwner).to.equal(owner)
             expect(ev.args.newOwner).to.equal(thirdy)
         })
+
+        it("should set back the owner", async () => {
+            const transferOwnership = await contract.transferOwnership(owner)
+            const newOwner = await contract.owner()
+            assert.strictEqual(newOwner, owner, "Contract owner has not been updated")
+        })
     })
+
     describe("Kill stuff:", async () => {
+
         it('should fail on no owner invokation', async () => {
             try{
                 const isKilled = await contract.kill({from: thirdy})
@@ -48,6 +61,7 @@ contract('Remittance', (accounts)=> {
                 assert.include(e.message, 'revert', 'No revert if anyone kill the contract')
             }
         })
+
         it('should not kill the contract if timeframe has not expired', async () => {
             try {
                 const isKilled = await contract.kill()
@@ -56,19 +70,57 @@ contract('Remittance', (accounts)=> {
                 assert.include(e.message, 'revert', 'No revert if owner kill the contract while is not expired')
             }
         })
+
         it('should kill the contract if timeframe has expired and the fuction is invoke by the owner', async () => {
-            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})      
-            const isKilled = await cont.kill()
+            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})      
+            const isKilled = await cont.kill({from: thirdy})
             const status = isKilled.receipt.status
             assert.equal(status, '0x01', "Contract is not dead")
         })
+
         it('should not kill the contract even if timeframe has expired', async () => {
             try {
-                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})
-                const isKilled = await cont.kill({from: thirdy})
+                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
+                const isKilled = await cont.kill({from: owner})
             } catch(e) {
                 assert.include(e.message, 'revert', 'No revert if owner kill the contract while is not expired')
             }
+        })
+    })
+
+    describe("Redeem stuff:", async () => {
+
+        it('should not reedem since timeframe is not expired', async () => {
+            try {
+                const redeem = await contract.redeem()
+            } catch(e) {
+                assert.include(e.message, 'revert', 'Can be redeem whenever')
+            }
+        })
+
+        it('should not reedem if invoke by no owner', async () => {
+            try {
+                const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})
+                const redeem = await cont.redeem({from: thirdy})
+            } catch(e) {
+                assert.include(e.message, 'revert', 'Anyone can reedem')
+            }
+        })
+
+        it('should reedem 4 ether', async () => {
+            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {value: web3.toWei(4, 'ether')})
+            const initial = Math.trunc(web3.fromWei(web3.eth.getBalance(owner), 'ether'))
+            const redeem = await cont.redeem()
+            const final = Math.trunc(web3.fromWei(web3.eth.getBalance(owner), 'ether'))
+            assert.equal(final-initial, 4, 'Reedem failed')
+        })
+        
+        it("should log an LogRedeem event", async () => {
+            const cont = await Remittance.new(pwd1, pwd2, exchange, 0, {from: thirdy, value: web3.toWei(4, 'ether')})
+            const redeem = await cont.redeem({from: thirdy})
+            const ev = expectEvent(redeem, 'LogRedeem')
+            expect(ev.args.from).to.equal(thirdy)
+            expect(ev.args.amount.toString(10)).to.equal(web3.toWei(4, 'ether'))
         })
     })
 })
