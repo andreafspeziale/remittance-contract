@@ -10,8 +10,8 @@ contract('Remittance', (accounts)=> {
     const pwd2 = 'hello2'
     const pwd3 = 'hello3'
 
-    const puzzle = web3.sha3(pwd1, pwd2)
-    const wrongPuzzle = web3.sha3(pwd1, pwd3)
+    const puzzle = web3.sha3(pwd1 + pwd2)
+    const wrongPuzzle = web3.sha3(pwd1 + pwd3)
 
     const bal = web3.eth.getBalance(owner)
 
