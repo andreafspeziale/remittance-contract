@@ -39,8 +39,8 @@ contract Remittance is Ownable {
     function withdraw(string _psw1, string _psw2) whileNotExpired public payable {
         require(msg.sender == exchange);
         require(keccak256(puzzle.psw1, puzzle.psw2) == keccak256(_psw1, _psw2));
-        LogWithdraw(msg.sender, amountToremit);
         msg.sender.transfer(amountToremit);
+        LogWithdraw(msg.sender, amountToremit);
     }
 
     function redeem() onlyOwner whileExpired public payable {
