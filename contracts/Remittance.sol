@@ -14,12 +14,12 @@ contract Remittance is Ownable {
     bytes32 private puzzle;
 
     modifier whileNotExpired() {
-        require(now < deadline);
+        require(block.number < deadline);
         _;
     }
 
     modifier whileExpired() {
-        require(now >= deadline);
+        require(block.number >= deadline);
         _;
     }
 
@@ -29,14 +29,14 @@ contract Remittance is Ownable {
         puzzle = _puzzle;
         amountToremit = msg.value;
         exchange = _exchange;
-        deadline = now + duration;
+        deadline = block.number + duration;
     }
 
     function withdraw(string _psw1, string _psw2) whileNotExpired public payable {
         require(msg.sender == exchange);
         require(_solvePuzzle(_psw1, _psw2));
-        msg.sender.transfer(amountToremit);
         LogWithdraw(msg.sender, amountToremit);
+        msg.sender.transfer(amountToremit);
     }
 
     function _solvePuzzle(string _psw1, string _psw2) private view returns(bool) {
