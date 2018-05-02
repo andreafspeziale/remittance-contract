@@ -14,19 +14,19 @@ contract Remittance is Ownable {
     bytes32 private puzzle;
 
     modifier whileNotExpired() {
-        require(block.number<deadline);
+        require(block.number < deadline);
         _;
     }
 
     modifier whileExpired() {
-        require(block.number>=deadline);
+        require(block.number >= deadline);
         _;
     }
 
     function Remittance(bytes32 _puzzle, address _exchange, uint duration) public payable {
         require(msg.value > 0);
         require(_exchange != address(0x00));
-        puzzle=_puzzle;
+        puzzle = _puzzle;
         amountToremit = msg.value;
         exchange = _exchange;
         deadline = block.number + duration;
