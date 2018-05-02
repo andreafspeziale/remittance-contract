@@ -25,6 +25,7 @@ contract Remittance is Ownable {
 
     function Remittance(bytes32 _puzzle, address _exchange, uint duration) public payable {
         require(msg.value > 0);
+        require(_exchange != address(0x00));
         puzzle=_puzzle;
         amountToremit = msg.value;
         exchange = _exchange;
