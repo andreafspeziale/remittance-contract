@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "truffle": "^4.0.5"
+    "truffle": "^4.1.13"
   },
   "dependencies": {
     "lodash": "^4.17.5"
